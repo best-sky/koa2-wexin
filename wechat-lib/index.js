@@ -46,6 +46,10 @@ const Api = {
     ai: {
         translate: Base + 'media/voice/translatecontent?',
     },
+    menu: {
+        create: Base + 'menu/create?',
+        del: Base + 'menu/delete?',
+    },
 };
 
 module.exports = class WeChat {
@@ -367,11 +371,26 @@ module.exports = class WeChat {
         }
         //微信ai翻译
     aiTranslate(token, body, lfrom, lto) {
-        let url = `${Api.ai.translate}access_token=${token}&lfrom=${lfrom}&lto=${lto}`;
+            let url = `${Api.ai.translate}access_token=${token}&lfrom=${lfrom}&lto=${lto}`;
+            return {
+                method: 'POST',
+                url,
+                body,
+            };
+        }
+        //菜单的创建与删除
+    createMenu(token, menu) {
+        let url = `${Api.menu.create}access_token=${token}`;
         return {
             method: 'POST',
             url,
-            body,
+            body: menu,
+        };
+    }
+    deleteMenu(token) {
+        let url = `${Api.menu.del}access_token=${token}`;
+        return {
+            url,
         };
     }
     async handle(operation, ...args) {

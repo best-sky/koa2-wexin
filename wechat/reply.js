@@ -236,6 +236,56 @@ module.exports = async(context, next) => {
             let body = "为中华崛起而读书";
             let data = await client.handle('aiTranslate', body, 'zh_CN', 'en_US');
             reply = data.to_content ? data.to_content : '19.公众号尚未通过微信认证，无法调用接口～';
+        } else if ("20" === content) {
+            try {
+                await client.handle('deleteMenu');
+                let menu = {
+                    button: [{
+                            name: '一级菜单',
+                            sub_button: [{
+                                    name: '二级菜单_1',
+                                    type: 'click',
+                                    key: 'no_1',
+                                },
+                                {
+                                    name: '二级菜单_2',
+                                    type: 'click',
+                                    key: 'no_2',
+                                },
+                                {
+                                    name: '二级菜单_3',
+                                    type: 'click',
+                                    key: 'no_3',
+                                },
+                                {
+                                    name: '二级菜单_4',
+                                    type: 'click',
+                                    key: 'no_4',
+                                },
+                                {
+                                    name: '二级菜单_5',
+                                    type: 'click',
+                                    key: 'no_5',
+                                },
+                            ],
+                        },
+                        {
+                            name: '分类',
+                            type: 'view',
+                            url: 'http://www.feihu1996.cn/',
+                        },
+                        {
+                            name: `新菜单_${Math.random()}`,
+                            type: 'click',
+                            key: 'new_111',
+                        },
+                    ],
+                };
+                let data = await client.handle('createMenu', menu);
+                reply = !data.errcode ? '自定义菜单创建成功~' : '20.公众号尚未通过微信认证，无法调用接口～';
+            } catch (e) {
+                console.log(e);
+            }
         }
         context.body = reply;
     }
