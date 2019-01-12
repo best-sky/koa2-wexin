@@ -223,6 +223,19 @@ module.exports = async(context, next) => {
             let longUrl = "https://github.com/feihu1996x/koaMovie/commit/6d569d85787bd72b1a55702b74ffb48bc5a6e6f4";
             let shortUrlData = await client.handle('createShortUrl', longUrl);
             reply = shortUrlData.short_url ? shortUrlData.short_url : '17.公众号尚未通过微信认证，无法调用接口～';
+        } else if ("18" === content) {
+            let semanticData = {
+                query: '查一下明天从北京到上海的南航机票',
+                city: '北京',
+                category: 'flight,hotel',
+                uid: Message.FromUserName,
+            };
+            let searchData = await client.handle('semantic', semanticData);
+            reply = !searchData.errcode ? JSON.stringify(searchData) : '18.公众号尚未通过微信认证，无法调用接口～';
+        } else if ("19" === content) {
+            let body = "编程语言难学吗？";
+            let data = await client.handle('aiTranslate', body, 'zh_CN', 'en_US');
+            reply = data.to_content ? data.to_content : '19.公众号尚未通过微信认证，无法调用接口～';
         }
         context.body = reply;
     }

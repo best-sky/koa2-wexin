@@ -2,6 +2,7 @@ const Fs = require('fs');
 const Request = require('request-promise');
 const Base = 'https://Api.weixin.qq.com/cgi-bin/';
 const MpBase = 'https://mp.weixin.qq.com/cgi-bin/';
+const SemanticUrl = 'https://api.weixin.qq.com/semantic/semproxy/search?';
 const Api = {
     accessToken: Base + 'token?grant_type=client_credential',
     temporary: {
@@ -40,6 +41,10 @@ const Api = {
     },
     shortUrl: {
         create: Base + 'shorturl?',
+    },
+    SemanticUrl,
+    ai: {
+        translate: Base + 'media/voice/translatecontent?',
     },
 };
 
@@ -339,11 +344,30 @@ module.exports = class WeChat {
         }
         //长链接转短连接
     createShortUrl(token, longUrl, action = "long2short") {
-        let body = {
-            action,
-            long_url: longUrl,
-        };
-        let url = `${Api.shortUrl.create}access_token=${token}`;
+            let body = {
+                action,
+                long_url: longUrl,
+            };
+            let url = `${Api.shortUrl.create}access_token=${token}`;
+            return {
+                method: 'POST',
+                url,
+                body,
+            };
+        }
+        //微信开发平台语义接口
+    semantic(token, semanticData) {
+            let url = `${Api.SemanticUrl}access_token=${token}`;
+            semanticData.appid = this.appID;
+            return {
+                method: 'POST',
+                url,
+                body: semanticData,
+            };
+        }
+        //微信ai翻译
+    aiTranslate(token, body, lfrom, lto) {
+        let url = `${Api.ai.translate}access_token=${token}&lfrom=${lfrom}&lto=${lto}`;
         return {
             method: 'POST',
             url,
