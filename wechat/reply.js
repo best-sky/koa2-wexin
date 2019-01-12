@@ -233,7 +233,7 @@ module.exports = async(context, next) => {
             let searchData = await client.handle('semantic', semanticData);
             reply = !searchData.errcode ? JSON.stringify(searchData) : '18.公众号尚未通过微信认证，无法调用接口～';
         } else if ("19" === content) {
-            let body = "编程语言难学吗？";
+            let body = "为中华崛起而读书";
             let data = await client.handle('aiTranslate', body, 'zh_CN', 'en_US');
             reply = data.to_content ? data.to_content : '19.公众号尚未通过微信认证，无法调用接口～';
         }
