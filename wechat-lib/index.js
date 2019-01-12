@@ -1,6 +1,7 @@
 const Fs = require('fs');
 const Request = require('request-promise');
 const Base = 'https://Api.weixin.qq.com/cgi-bin/';
+const MpBase = 'https://mp.weixin.qq.com/cgi-bin/';
 const Api = {
     accessToken: Base + 'token?grant_type=client_credential',
     temporary: {
@@ -32,11 +33,18 @@ const Api = {
         remark: Base + 'user/info/updateremark?',
         info: Base + 'user/info?',
         batch: Base + 'user/info/batchget?',
-    }
+    },
+    qrcode: {
+        create: Base + 'qrcode/create?',
+        show: MpBase + 'showqrcode?',
+    },
+    shortUrl: {
+        create: Base + 'shorturl?',
+    },
 };
 
 module.exports = class WeChat {
-    constructor (opts) {
+    constructor(opts) {
         this.opts = Object.assign({}, opts);
         this.appID = opts.appID;
         this.appSecret = opts.appSecret;
@@ -45,26 +53,30 @@ module.exports = class WeChat {
 
         this.fetchAccessToken();
     }
-    async request(opts){
-        opts = Object.assign({}, opts, {json: true});
-        try{
+    async request(opts) {
+        opts = Object.assign({}, opts, {
+            json: true
+        });
+        try {
             const res = await Request(opts);
             return res;
-        }catch(err){
+        } catch (err) {
             console.log(err);
         }
     }
-    async fetchAccessToken(){
+    async fetchAccessToken() {
         let data = await this.getAccessToken();
 
-        if(!this.isValidToken(data)){
+        if (!this.isValidToken(data)) {
             data = await this.updateAccessToken();
         }
         return data;
     }
-    async updateAccessToken(){
+    async updateAccessToken() {
         const url = `${Api.accessToken}&appid=${this.appID}&secret=${this.appSecret}`;
-        const data = await this.request({ url });
+        const data = await this.request({
+            url
+        });
 
         const Now = new Date().getTime();
         const ExpiresIn = Now + (data.expires_in - 20) * 1000;
@@ -75,65 +87,65 @@ module.exports = class WeChat {
 
         return data;
     }
-    isValidToken(data){
-        if(!data || !data.expires_in){
+    isValidToken(data) {
+        if (!data || !data.expires_in) {
             return false;
         }
         const ExpiresIn = data.expires_in;
         const Now = new Date().getTime();
-        if(Now < ExpiresIn){
+        if (Now < ExpiresIn) {
             return true;
-        }else {
+        } else {
             return false;
         }
     }
-    uploadMaterial(token, type, material, permanent=false){
+    uploadMaterial(token, type, material, permanent = false) {
         let form = {};
         let url = Api.temporary.upload;
 
         if (permanent) {
-          url = Api.permanent.upload;
-          form = Object.assign(form, permanent);
+            url = Api.permanent.upload;
+            form = Object.assign(form, permanent);
         }
-    
+
         if (type === 'pic') {
-          url = Api.permanent.uploadNewsPic;
+            url = Api.permanent.uploadNewsPic;
         }
 
         if (type === 'news') {
-          url = Api.permanent.uploadNews;
-          form = material;
+            url = Api.permanent.uploadNews;
+            form = material;
         } else {
-          form.media = Fs.createReadStream(material);
+            form.media = Fs.createReadStream(material);
         }
-    
+
         let uploadUrl = `${url}access_token=${token}`;
-    
+
         if (!permanent) {
-          uploadUrl += `&type=${type}`;
+            uploadUrl += `&type=${type}`;
         } else {
-          if (type !== 'news') {
-            form.access_token = token;
-          }
+            if (type !== 'news') {
+                form.access_token = token;
+            }
         }
         const options = {
-          method: 'POST',
-          url: uploadUrl,
-          json: true,
+            method: 'POST',
+            url: uploadUrl,
+            json: true,
         }
 
         if (type === 'news') {
-          options.body = form;
+            options.body = form;
         } else {
-          options.formData = form;
+            options.formData = form;
         }
 
         return options;
     }
-    fetchMaterial(token, mediaId, type, permanent){
+    fetchMaterial(token, mediaId, type, permanent) {
         let form = {};
         let fetchUrl = Api.temporary.fetch;
-        if(permanent){
+        if (permanent) {
             fetchUrl = Api.permanent.fetch;
         }
         let url = `${fetchUrl}access_token=${token}`;
@@ -141,19 +153,19 @@ module.exports = class WeChat {
             method: 'POST',
             url,
         };
-        if(permanent){
+        if (permanent) {
             form.media_id = mediaId;
             form.access_token = token;
             Options.body = form;
-        }else{
-            if("video" === type){
+        } else {
+            if ("video" === type) {
                 url = url.replace("https:", "http");
             }
             url += "&media_id=" + mediaId;
         }
         return Options;
     }
-    deleteMaterial(token, mediaId){
+    deleteMaterial(token, mediaId) {
         const Form = {
             media_id: mediaId,
         };
@@ -164,7 +176,7 @@ module.exports = class WeChat {
             body: Form,
         };
     }
-    updateMaterial(token, mediaId, news){
+    updateMaterial(token, mediaId, news) {
         let form = {
             media_id: mediaId,
         };
@@ -174,28 +186,28 @@ module.exports = class WeChat {
             method: 'POST',
             url,
             body: form,
-        };        
+        };
     }
-    countMaterial(token){
+    countMaterial(token) {
         let url = `${Api.permanent.count}access_token=${token}`;
         return {
             url,
         };
     }
-    batchMaterial(token, options){
+    batchMaterial(token, options) {
         options.type = options.type || 'image';
         options.offset = options.offset || 0;
         options.count = options.count || 10;
 
         let url = `${Api.permanent.batch}access_token=${token}`;
-        
+
         return {
             method: 'POST',
             url,
             body: options,
         };
     }
-    createTag(token, name){
+    createTag(token, name) {
         let body = {
             tag: {
                 name,
@@ -208,13 +220,13 @@ module.exports = class WeChat {
             body,
         };
     }
-    fetchTags(token){
+    fetchTags(token) {
         let url = `${Api.tag.fetch}access_token=${token}`;
         return {
             url,
         };
     }
-    updateTag(token, id, name){
+    updateTag(token, id, name) {
         let body = {
             tag: {
                 id,
@@ -228,7 +240,7 @@ module.exports = class WeChat {
             body,
         };
     }
-    delTag(token, id){
+    delTag(token, id) {
         let body = {
             tag: {
                 id,
@@ -241,7 +253,7 @@ module.exports = class WeChat {
             body,
         };
     }
-    fetchTagUsers(token, tagId, openId){
+    fetchTagUsers(token, tagId, openId) {
         let body = {
             tagid: tagId,
             next_openid: openId || '',
@@ -253,7 +265,7 @@ module.exports = class WeChat {
             body,
         };
     }
-    batchUsersTag(token, openIdList, tagId, unTag){
+    batchUsersTag(token, openIdList, tagId, unTag) {
         let body = {
             openid_list: openIdList,
             tagid: tagId,
@@ -265,7 +277,7 @@ module.exports = class WeChat {
             body,
         };
     }
-    getUserTags(token, openId){
+    getUserTags(token, openId) {
         let body = {
             openid: openId
         };
@@ -276,13 +288,13 @@ module.exports = class WeChat {
             body,
         };
     }
-    getUsers(token, openId){
+    getUsers(token, openId) {
         let url = `${Api.user.fetch}access_token=${token}&next_openid=${openId || ''}`;
         return {
             url,
         };
     }
-    remarkUser(token, openId, remark){
+    remarkUser(token, openId, remark) {
         let body = {
             openid: openId,
             remark: remark,
@@ -294,24 +306,51 @@ module.exports = class WeChat {
             body,
         };
     }
-    getUserInfo(token, openId, lang="zh_CN"){
+    getUserInfo(token, openId, lang = "zh_CN") {
         let url = `${Api.user.info}access_token=${token}&openid=${openId}&lang=${lang}`;
         return {
             url,
         };
     }
-    batchUserInfo(token, user_list){
-        let body = {
-            user_list,
-        };
-        let url = `${Api.user.batch}access_token=${token}`;
+    batchUserInfo(token, user_list) {
+            let body = {
+                user_list,
+            };
+            let url = `${Api.user.batch}access_token=${token}`;
+            return {
+                method: 'POST',
+                url,
+                body,
+            };
+        }
+        //临时二维码获取
+    createQrcode(token, qr) {
+        let url = `${Api.qrcode.create}access_token=${token}`;
+        let body = qr;
         return {
             method: 'POST',
             url,
             body,
-        };        
+        };
     }
-    async handle(operation, ...args){
+    showQrcode(ticket) {
+            let url = `${Api.qrcode.show}ticket=${encodeURI(ticket)}`;
+            return url;
+        }
+        //长链接转短连接
+    createShortUrl(token, longUrl, action = "long2short") {
+        let body = {
+            action,
+            long_url: longUrl,
+        };
+        let url = `${Api.shortUrl.create}access_token=${token}`;
+        return {
+            method: 'POST',
+            url,
+            body,
+        };
+    }
+    async handle(operation, ...args) {
         const TokenData = await this.fetchAccessToken();
         const Options = this[operation](TokenData.access_token, ...args);
         const Data = await this.request(Options);

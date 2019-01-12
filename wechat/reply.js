@@ -1,28 +1,30 @@
-let { resolve } = require('path');
+let {
+    resolve
+} = require('path');
 
-module.exports = async (context, next)=>{
+module.exports = async(context, next) => {
     const Message = context.weixin;
-    
+
     let mp = require('../wechat');
-    
+
     let client = mp.getWeChat();
-    
-    if('text' === Message.MsgType){
+
+    if ('text' === Message.MsgType) {
         let content = Message.Content;
         let reply = "不管怎么样，我都喜欢你～";
-        if("1" === content){
+        if ("1" === content) {
             reply = "1. 我喜欢你";
-        }else if("2" === content){
+        } else if ("2" === content) {
             reply = "2. 我喜欢你";
-        }else if("3" === content){
+        } else if ("3" === content) {
             reply = "3. 我喜欢你";
-        }else if("4" === content){
+        } else if ("4" === content) {
             let data = await client.handle('uploadMaterial', 'image', resolve(__dirname, '../2.jpg'));
             reply = {
                 type: 'image',
                 mediaId: data.media_id,
             };
-        }else if("5" === content){
+        } else if ("5" === content) {
             let data = await client.handle('uploadMaterial', 'video', resolve(__dirname, '../6.mp4'));
             reply = {
                 type: 'video',
@@ -30,7 +32,7 @@ module.exports = async (context, next)=>{
                 description: "吃个鸡？",
                 mediaId: data.media_id,
             };
-        }else if("6" === content){
+        } else if ("6" === content) {
             let data = await client.handle('uploadMaterial', 'video', resolve(__dirname, '../6.mp4'), {
                 type: 'video',
                 description: '{"title": "吃个鸡？", "introduction": "吃个鸡？"}'
@@ -41,10 +43,10 @@ module.exports = async (context, next)=>{
                 description: "吃个鸡？",
                 mediaId: data.media_id,
             };
-            if(!data.media_id){
+            if (!data.media_id) {
                 reply = "公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("7" === content){
+        } else if ("7" === content) {
             let data = await client.handle('uploadMaterial', 'image', resolve(__dirname, '../2.jpg'), {
                 type: 'image',
             });
@@ -52,10 +54,10 @@ module.exports = async (context, next)=>{
                 type: 'image',
                 mediaId: data.media_id,
             };
-            if(!data.media_id){
+            if (!data.media_id) {
                 reply = "公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("8" === content){
+        } else if ("8" === content) {
             let data = await client.handle('uploadMaterial', 'image', resolve(__dirname, '../2.jpg'), {
                 type: 'image',
             });
@@ -63,8 +65,7 @@ module.exports = async (context, next)=>{
                 type: 'image',
             });
             let media = {
-                articles: [
-                    {
+                articles: [{
                         "title": "这是服务端上传的图文 1",
                         "thumb_media_id": data.media_id,
                         "author": "Angus",
@@ -81,7 +82,7 @@ module.exports = async (context, next)=>{
                         "show_cover_pic": 1,
                         "content": "点击去往GitHub",
                         "content_source_url": "https://github.com/",
-                    },                    
+                    },
                 ],
             };
             let uploadData = await client.handle('uploadMaterial', "news", media, {});
@@ -103,11 +104,11 @@ module.exports = async (context, next)=>{
             await client.handle('updateMaterial', uploadData.media_id, newMedia);
 
             let newsData = await client.handle('fetchMaterial', uploadData.media_id, 'news', {});
-            
+
             let items = newsData.news_item;
             let news = [];
 
-            if(items){
+            if (items) {
                 items.forEach(item => {
                     news.push({
                         title: item.title,
@@ -120,31 +121,31 @@ module.exports = async (context, next)=>{
 
             reply = news;
 
-            if(!data.media_id){
+            if (!data.media_id) {
                 reply = "公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("9" === content){
+        } else if ("9" === content) {
             let counts = await client.handle('countMaterial');
             let res = await Promise.all([
                 client.handle('batchMaterial', {
-                  type: 'image',
-                  offset: 0,
-                  count: 10,
+                    type: 'image',
+                    offset: 0,
+                    count: 10,
                 }),
                 client.handle('batchMaterial', {
-                  type: 'video',
-                  offset: 0,
-                  count: 10,
+                    type: 'video',
+                    offset: 0,
+                    count: 10,
                 }),
                 client.handle('batchMaterial', {
-                  type: 'voice',
-                  offset: 0,
-                  count: 10,
+                    type: 'voice',
+                    offset: 0,
+                    count: 10,
                 }),
                 client.handle('batchMaterial', {
-                  type: 'news',
-                  offset: 0,
-                  count: 10,
+                    type: 'news',
+                    offset: 0,
+                    count: 10,
                 }),
             ]);
             reply = `
@@ -153,57 +154,81 @@ module.exports = async (context, next)=>{
             voice: ${res[2].total_count}
             news: ${res[3].total_count}
             `;
-            if(!res[0].total_count){
+            if (!res[0].total_count) {
                 reply = "公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("10" === content){
+        } else if ("10" === content) {
             let newTag = await client.handle("createTag", "测试标签");
-            
-            await client.handle("updateTag", newTag.tag?newTag.tag.id:1, "还是测试标签");
-            
+
+            await client.handle("updateTag", newTag.tag ? newTag.tag.id : 1, "还是测试标签");
+
             let tagsData = await client.handle('fetchTags');
 
-            await client.handle('batchUsersTag', [Message.FromUserName], newTag.tag?newTag.tag.id:1);
+            await client.handle('batchUsersTag', [Message.FromUserName], newTag.tag ? newTag.tag.id : 1);
 
-            let tagUsers = await client.handle('fetchTagUsers', newTag.tag?newTag.tag.id:1);
+            let tagUsers = await client.handle('fetchTagUsers', newTag.tag ? newTag.tag.id : 1);
             let userTags = await client.handle('getUserTags', Message.FromUserName);
 
-            await client.handle('batchUsersTag', [Message.FromUserName], newTag.tag?newTag.tag.id:1, true);
+            await client.handle('batchUsersTag', [Message.FromUserName], newTag.tag ? newTag.tag.id : 1, true);
 
-            await client.handle("delTag", newTag.tag?newTag.tag.id:1);
+            await client.handle("delTag", newTag.tag ? newTag.tag.id : 1);
 
             reply = JSON.stringify(tagsData);
-            if(!tagsData.tags){
+            if (!tagsData.tags) {
                 reply = "公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("11" === content){
+        } else if ("11" === content) {
             let users = await client.handle('getUsers');
-            if(!users.total){
+            if (!users.total) {
                 reply = "11.公众号尚未通过微信认证，无法调用接口～";
             }
-        }else if("12" === content){
+        } else if ("12" === content) {
             let res = await client.handle('remarkUser', Message.FromUserName, 'MENTOR');
             reply = `${!res.errcode?'您的备注现在是MENTOR':'12.公众号尚未通过微信认证，无法调用接口～'}`;
-        }else if("13" === content){
+        } else if ("13" === content) {
             let data = await client.handle('getUserInfo', Message.FromUserName);
             reply = `${data.openid?JSON.stringify(data):'13.公众号尚未通过微信认证，无法调用接口～'}`;
-        }else if("14" === content){
-            let data = await client.handle('batchUserInfo',user_list=[
-                {
-                    openid: Message.FromUserName, 
-                    lang: 'zh_CN',
-                },
-            ]);
+        } else if ("14" === content) {
+            let data = await client.handle('batchUserInfo', user_list = [{
+                openid: Message.FromUserName,
+                lang: 'zh_CN',
+            }, ]);
             reply = `${data.user_info_list?JSON.stringify(data):'14.公众号尚未通过微信认证，无法调用接口～'}`;
-        }else if("兰洁" === content){
-            reply = "兰洁，我喜欢你";
+        } else if ("15" === content) {
+            let tempQrData = {
+                expire_seconds: 604800,
+                action_name: "QR_SCENE",
+                action_info: {
+                    scene: {
+                        scene_id: 123,
+                    }
+                }
+            };
+            let tempTicketData = await client.handle('createQrcode', tempQrData);
+            let tempQr = client.showQrcode(tempTicketData.ticket);
+            reply = tempTicketData.ticket ? tempQr : '15.公众号尚未通过微信认证，无法调用接口～';
+        } else if ("16" === content) {
+            let qrData = {
+                action_name: "QR_SCENE",
+                action_info: {
+                    scene: {
+                        scene_id: 99,
+                    }
+                }
+            };
+            let ticketData = await client.handle('createQrcode', qrData);
+            let qr = client.showQrcode(ticketData.ticket);
+            reply = ticketData.ticket ? qr : '16.公众号尚未通过微信认证，无法调用接口～';
+        } else if ("17" === content) {
+            let longUrl = "https://github.com/feihu1996x/koaMovie/commit/6d569d85787bd72b1a55702b74ffb48bc5a6e6f4";
+            let shortUrlData = await client.handle('createShortUrl', longUrl);
+            reply = shortUrlData.short_url ? shortUrlData.short_url : '17.公众号尚未通过微信认证，无法调用接口～';
         }
         context.body = reply;
     }
-    
-    if('event' === Message.MsgType){
+    if ('event' === Message.MsgType) {
         let reply = '';
-        if("LOCATION" === Message.Event){
+        if ("LOCATION" === Message.Event) {
             reply = `您上报的位置是：${Message.Latitude}-${Message.Longitude}-${Message.Precision}`;
             context.body = reply;
         }
