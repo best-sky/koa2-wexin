@@ -316,7 +316,7 @@ module.exports = async (context, next) => {
       reply = data.to_content
         ? data.to_content
         : '19.公众号尚未通过微信认证，无法调用接口～'
-    } else if ('20' === content) {
+    } else if ('20' === content) {//创建菜单
       try {
         await client.handle('deleteMenu')
         let menu = {
@@ -370,7 +370,7 @@ module.exports = async (context, next) => {
       } catch (e) {
         console.log(e)
       }
-    } else if ('21' === content) {
+    } else if ('21' === content) {// 自定义菜单事件
       try {
         await client.handle('deleteMenu')
         let menu = {
@@ -431,6 +431,77 @@ module.exports = async (context, next) => {
         reply = !data.errcode
           ? '自定义菜单创建成功~'
           : '21.公众号尚未通过微信认证，无法调用接口～'
+      } catch (e) {
+        console.log(e)
+      }
+    } else if ('22' === content) { //个性菜单配置
+      try {
+        let menu = {
+          button: [
+            {
+              name: 'Photo&Scan',
+              sub_button: [
+                {
+                  name: '系统拍照发图',
+                  type: 'pic_sysphoto',
+                  key: 'rselfmenu_1_0'
+                },
+                {
+                  name: '拍照或者相册发图',
+                  type: 'pic_photo_or_album',
+                  key: 'rselfmenu_1_1'
+                },
+                {
+                  name: '微信相册发图',
+                  type: 'pic_weixin',
+                  key: 'rselfmenu_1_2'
+                },
+                {
+                  name: '扫码推',
+                  type: 'scancode_push',
+                  key: 'rselfmenu_0_1'
+                },
+                {
+                  name: '扫码带提示',
+                  type: 'scancode_waitmsg',
+                  key: 'rselfmenu_0_0'
+                }
+              ]
+            },
+            {
+              name: 'Category',
+              type: 'view',
+              url: 'http://www.feihu1996.cn/'
+            },
+            {
+              name: `Other`,
+              sub_button: [
+                {
+                  name: '点击',
+                  type: 'click',
+                  key: 'no_110'
+                },
+                {
+                  name: '地理位置',
+                  type: 'location_select',
+                  key: 'no_111'
+                }
+              ]
+            }
+          ]
+        }
+        let rules = {
+          // tag_id:"2",
+          // sex:"1",
+          // country:"中国",
+          // province:"广东",
+          // city:"广州",
+          // client_platform_type:"2",
+          language: 'en'
+        }
+        let data = await client.handle('createMenu', menu, rules)
+        data = await client.handle('fetchMenu')
+        reply = data.conditionalmenu?'个性化菜单创建成功～':'22.公众号尚未通过微信认证，无法调用接口～';
       } catch (e) {
         console.log(e)
       }
@@ -496,9 +567,9 @@ module.exports = async (context, next) => {
     }
     context.body = reply
   }
-  if('image' === Message.MsgType){
-    reply = `接收图片消息：${Message.PicUrl?Message.PicUrl:''}`;
-    context.body = reply;
+  if ('image' === Message.MsgType) {
+    reply = `接收图片消息：${Message.PicUrl ? Message.PicUrl : ''}`
+    context.body = reply
   }
   await next()
 }
