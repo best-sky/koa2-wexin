@@ -28,14 +28,14 @@ const FormatMessage = content =>{
             if(1===item.length){
                 let val = item[0];
                 if("object" === typeof val){
-                    message[key] = formatMessage(val);
+                    message[key] = FormatMessage(val);
                 }else{
                     message[key] = (val || '').trim();
                 }
             }else{
                 message[key] = [];
                 for(let j=0;j<item.length;j++){
-                    message[key].push(formatMessage(item[j]));
+                    message[key].push(FormatMessage(item[j]));
                 }
             }
         }
