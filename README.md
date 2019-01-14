@@ -7,4 +7,6 @@
 ```bash
 # install dependecies
 npm install
-```
+# start
+node app.js
+
